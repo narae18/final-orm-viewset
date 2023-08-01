@@ -21,7 +21,7 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
         return PostSerializer
     
     def get_permissions(self):
-        if self.action in ["update", "destroy", "partial_update"]:
+        if self.action in ["update", "destroy", "partial_update", "create"]:
             return [IsAdminUser()]
         return []
     
@@ -56,18 +56,12 @@ class CommentViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin, mixins.
 class PostCommentViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
     # queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         post = self.kwargs.get("post_id")
         queryset = Comment.objects.filter(post_id=post)
         return queryset
-    
-    # def list(self,request, post_id=None):
-    #     post = get_object_or_404(Post, id=post_id)
-    #     queryset = self.filter_queryset(self.get.queryset().filter(post=post))
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
     
     
     def create(self, request,post_id=None):
@@ -77,6 +71,10 @@ class PostCommentViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
         serializer.save(post=post)
         return Response(serializer.data)
     
+    def get_permissions(self):
+        if self.action in ["list", "create"]:
+            return [IsAdminUser()]
+        return []
     
     #구현2
     
