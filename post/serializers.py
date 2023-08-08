@@ -3,7 +3,9 @@ from .models import *
 
 class PostSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
-
+    like_cnt = serializers.IntegerField()
+    dislike_cnt = serializers.IntegerField()
+    
     def get_comments(self, instance):
         comments = Comment.objects.filter(post=instance)
         serializer = CommentSerializer(comments, many=True)
@@ -18,13 +20,15 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(serializers.ModelSerializer):
     comments_cnt = serializers.SerializerMethodField()
-
+    like_cnt = serializers.IntegerField()
+    dislike_cnt = serializers.IntegerField()
+    
     def get_comments_cnt(self, instance):
         return Comment.objects.filter(post=instance).count()
 
     class Meta:
         model = Post
-        fields = ["id", "title", "writer", "content", "updated_at", "created_at", "comments_cnt","likes"]
+        fields = ["id", "title", "writer", "content", "updated_at", "created_at", "comments_cnt", "like_cnt", "dislike_cnt"]
         read_only_fields = ["id", "created_at", "updated_at", "comments_cnt"]
 
 
