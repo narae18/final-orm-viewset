@@ -13,7 +13,8 @@ from rest_framework.exceptions import PermissionDenied
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import action
 
-from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 
 from django.db.models import Count, Q
 
@@ -25,7 +26,7 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
         ),
         dislike_cnt=Count(
             "reactions", filter=Q(reactions__reaction="dislike"), distinct=True
-        ),
+        )
         
     )
     filter_backends = [SearchFilter]
@@ -49,16 +50,13 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
     def likes(self, request, pk=None):
         post = self.get_object()
         user = request.user
-        reaction = request.data.get("reaction")
 
-        
-        if reaction == "like":
 
-            if PostReaction.objects.filter(post=post, user=user, reaction="Like").exists():
-                PostReaction.objects.filter(post=post, user=user, reaction="Like").delete()
+        if PostReaction.objects.filter(post=post, user=user, reaction="like").exists():
+            PostReaction.objects.filter(post=post, user=user, reaction="like").delete()
                 
-            else:
-                PostReaction.objects.create(post=post, user=user, reaction="Like")
+        else:
+            PostReaction.objects.create(post=post, user=user, reaction="like")
             
             
         return Response({"return": "조아요성공"})
@@ -69,16 +67,15 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
     def dislikes(self, request, pk=None):
         post = self.get_object()
         user = request.user
-        reaction = request.data.get("reaction")
+        # reaction = request.data.get("reaction")
 
     
-        if reaction == "dislike":
-            if PostReaction.objects.filter(post=post, user=user, reaction="Dislike").exists():
-                PostReaction.objects.filter(post=post, user=user, reaction="Dislike").delete()
-            else:
-                PostReaction.objects.update_or_create(post=post, user=user, defaults={"reaction": "Dislike"})
-        return Response({"return": "시러요성공"})
 
+        if PostReaction.objects.filter(post=post, user=user, reaction="dislike").exists():
+            PostReaction.objects.filter(post=post, user=user, reaction="dislike").delete()
+        else:
+            PostReaction.objects.update_or_create(post=post, user=user, defaults={"reaction": "dislike"})
+        return Response({"return": "시러요성공"})
 
     
     @action(methods=["GET"], detail=False)
