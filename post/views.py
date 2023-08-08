@@ -23,7 +23,7 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
         like_cnt=Count(
             "reactions", filter=Q(reactions__reaction="like"), distinct=True
         ),
-            dislike_cnt=Count(
+        dislike_cnt=Count(
             "reactions", filter=Q(reactions__reaction="dislike"), distinct=True
         ),
         
@@ -36,59 +36,42 @@ class PostViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateM
             return PostListSerializer
         return PostSerializer
     
-    def get_permissions(self):
-        if self.action in ["update", "destroy", "partial_update", "create"]:
-            return [IsAdminUser()]
-        return []
+
     
-    # @action(methods=["GET"], detail=True, url_path="like")
-    # def like_post(self, request, pk=None):
-    #     post = self.get_object()
-    #     post.likes += 1 
-    #     post.save()
-    #     return Response({"detail": "좋아요 됨!", "좋아요개수": post.likes})
-
-    # @action(methods=["GET"], detail=False, url_path="top3")
-    # def top3(self, request):
-    #     top3 = Post.objects.order_by('-likes')[:3]
-    #     serializer = PostSerializer(top3, many=True)
-    #     return Response(serializer.data)
-
     def get_permissions(self):
-        if self.action in ["update", "destroy", "partial_update", "likes"]:
+        if self.action in ["update", "destroy", "partial_update"]:
             return [IsAdminUser()]
         elif self.action in ["likes"]:
             return [IsAuthenticated()]
-        return []
-    
+        return []   
 
-    @action(methods=["GET"], detail=True, permission_classes=IsAuthenticated)
+    @action(methods=["POST"], detail=True, permission_classes=IsAuthenticated)
     def likes(self, request, pk=None):
         post = self.get_object()
         user = request.user
         reaction = request.data.get("reaction")
 
-        # if request.method == "POST":
+        
         if reaction == "like":
 
             if PostReaction.objects.filter(post=post, user=user, reaction="Like").exists():
-                    PostReaction.objects.filter(post=post, user=user, reaction="Like").delete()
+                PostReaction.objects.filter(post=post, user=user, reaction="Like").delete()
                 
             else:
-                    PostReaction.objects.create(post=post, user=user, reaction="Like")
+                PostReaction.objects.create(post=post, user=user, reaction="Like")
             
             
         return Response({"return": "조아요성공"})
 
 
     
-    @action(methods=["GET"], detail=True, permission_classes=IsAuthenticated)
+    @action(methods=["POST"], detail=True, permission_classes=IsAuthenticated)
     def dislikes(self, request, pk=None):
         post = self.get_object()
         user = request.user
         reaction = request.data.get("reaction")
 
-        # if request.method == "POST":
+    
         if reaction == "dislike":
             if PostReaction.objects.filter(post=post, user=user, reaction="Dislike").exists():
                 PostReaction.objects.filter(post=post, user=user, reaction="Dislike").delete()
@@ -142,27 +125,3 @@ class PostCommentViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.
             return [IsAdminUser()]
         return []
     
-    #구현2
-    
-# class CommentViewSet(viewsets.ModelViewSet):
-#     queryset = Comment.objects.all()
-#     serializer_class = CommentSerializer
-    
-
-# class PostCommentViewset(viewsets.ModelViewSet):
-#     queryset = Comment.objects.all()
-#     serializer_class = CommentSerializer
-    
-#     def list(self,request, post_id=None):
-#         post = get_object_or_404(Post, id=post_id)
-#         queryset = self.filter_queryset(self.get.queryset().filter(post=post))
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)
-    
-    
-#     def create(self, request,post_id=None):
-#         post = get_object_or_404(Post, id=post_id)
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save(post=post)
-#         return Response(serializer.data)
